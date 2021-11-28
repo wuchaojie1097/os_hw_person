@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
+#include <stdio.h>
 #include "word_count.h"
 
 /* Global data structure tracking the words encountered */
@@ -46,7 +46,40 @@ WordCount *word_counts = NULL;
  */
 int num_words(FILE* infile) {
   int num_words = 0;
+  int len = 0;
 
+  // find the first letter.
+  int c = fgetc(infile);
+  while(!isalpha(c)){
+	  c = fgetc(infile);
+  }
+
+  
+  while (isalpha(c)) {
+	len++;
+
+	// if word len exceed max length, then read out all char, else search for the char not is letter.
+	if(len>=MAX_WORD_LEN){
+		while(isalpha(c)){
+			c = fgetc(infile);
+		}
+	}else{
+		c = fgetc(infile);
+	}
+
+	while(!isalpha(c)){
+		// finish read one word.
+		len = 0;
+		num_words += 1;
+		// read out else character.
+		while(!isalpha(c)){
+			c = fgetc(infile);
+			if(c == -1) break;
+		}
+		if(c==-1) break;
+	}
+
+}
   return num_words;
 }
 
@@ -131,7 +164,11 @@ int main (int argc, char *argv[]) {
     // At least one file specified. Useful functions: fopen(), fclose().
     // The first file can be found at argv[optind]. The last file can be
     // found at argv[argc-1].
+    infile = fopen(argv[argc-1], "r");
+    if(infile == NULL) printf("Unable to open the file!\n");
   }
+
+  total_words = num_words(infile);
 
   if (count_mode) {
     printf("The total number of words is: %i\n", total_words);
